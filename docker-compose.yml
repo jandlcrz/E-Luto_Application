@@ -7,7 +7,7 @@ services:
       args:
         - REACT_APP_BASE_URL=http://localhost:5000
     container_name: frontend
-    image: recipe_frontend_image_nginx:1.0.0
+    image: jandlcrz/e-luto_application:recipe_frontend_image_nginx
     ports:
       - "3000:80"
     depends_on:
@@ -19,7 +19,7 @@ services:
     build:
       context: ./backend
     container_name: backend
-    image: recipe_backend_image_alpine:1.0.0
+    image: jandlcrz/e-luto_application:recipe_backend_image_alpine
     restart: always
     environment:
       - FLASK_APP=app.py

@@ -12,7 +12,7 @@ CORS(app)
 class Recipe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     recipe_name = db.Column(db.String(100), nullable=False)
-    ingredients = db.Column(db.String(500), nullable=False)
+    ingredients = db.Column(db.ARRAY(db.String), nullable=False)  # Change here
     instructions = db.Column(db.String(1000), nullable=False)
     date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
@@ -40,7 +40,7 @@ def format_recipe(recipe):
 def home():
     if request.method == 'POST':
         recipe_name = request.json['recipe_name']
-        ingredients = request.json['ingredients']
+        ingredients = request.json['ingredients']  # Change here
         instructions = request.json['instructions']
         new_recipe = Recipe(recipe_name=recipe_name, ingredients=ingredients, instructions=instructions)
         try:
@@ -93,7 +93,7 @@ def update(id):
     if not recipe_to_update:
         abort(404, description="Recipe not found")
     recipe_to_update.recipe_name = request.json['recipe_name']
-    recipe_to_update.ingredients = request.json['ingredients']
+    recipe_to_update.ingredients = request.json['ingredients']  # Change here
     recipe_to_update.instructions = request.json['instructions']
     recipe_to_update.date_created = datetime.utcnow()
     try:

@@ -156,3 +156,28 @@ ul li:hover {
 .recipe-buttons button:hover {
   background-color: #45a049;
 }
+
+form div.ingredients-group {
+  display: flex;
+  align-items: center;
+}
+
+form div.ingredients-group input[type="text"] {
+  flex: 1;
+  padding-right: 3rem;
+  margin-right: 1rem;
+}
+
+form div.ingredients-group button {
+  position: relative;
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+form div.ingredients-group button:hover {
+  background-color: #45a049;
+}

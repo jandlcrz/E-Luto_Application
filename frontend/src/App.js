@@ -19,7 +19,7 @@ function App() {
 
 function RecipeList() {
   const [recipeName, setRecipeName] = useState('');
-  const [ingredients, setIngredients] = useState('');
+  const [ingredientsArray, setIngredientsArray] = useState(['']);
   const [instructions, setInstructions] = useState('');
   const [recipeList, setRecipeList] = useState([]);
   const [error, setError] = useState('');
@@ -27,7 +27,7 @@ function RecipeList() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!recipeName || !ingredients || !instructions) {
+    if (!recipeName || ingredientsArray.some(ingredient => !ingredient) || !instructions) {
       setError('All fields are required.');
       return;
     }
@@ -35,12 +35,12 @@ function RecipeList() {
     try {
       const data = await axios.post(`${baseUrl}/`, {
         recipe_name: recipeName,
-        ingredients: ingredients,
+        ingredients: ingredientsArray,
         instructions: instructions
       });
       setRecipeList([...recipeList, data.data]);
       setRecipeName('');
-      setIngredients('');
+      setIngredientsArray(['']);
       setInstructions('');
     } catch (err) {
       console.error(err.message);
@@ -62,14 +62,34 @@ function RecipeList() {
   };
 
   const fetchRecipes = async () => {
-    const data = await axios.get(`${baseUrl}/`);
-    const { Recipes: recipes } = data.data;
-    setRecipeList(recipes);
+    try {
+      const { data } = await axios.get(`${baseUrl}/`);
+      const { Recipes: recipes } = data;
+      setRecipeList(recipes);
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
   useEffect(() => {
     fetchRecipes();
   }, []);
+
+  const handleIngredientChange = (index, value) => {
+    const newIngredients = [...ingredientsArray];
+    newIngredients[index] = value;
+    setIngredientsArray(newIngredients);
+  };
+
+  const addIngredient = () => {
+    setIngredientsArray([...ingredientsArray, '']);
+  };
+
+  const removeIngredient = (index) => {
+    const newIngredients = [...ingredientsArray];
+    newIngredients.splice(index, 1);
+    setIngredientsArray(newIngredients);
+  };
 
   return (
     <div className="App">
@@ -82,18 +102,22 @@ function RecipeList() {
               name="recipeName"
               id="recipeName"
               value={recipeName}
-              onChange={e => setRecipeName(e.target.value)}
+              onChange={(e) => setRecipeName(e.target.value)}
             />
           </div>
           <div>
-            <label htmlFor="ingredients">Ingredients:</label>
-            <textarea
-              type="text"
-              name="ingredients"
-              id="ingredients"
-              value={ingredients}
-              onChange={e => setIngredients(e.target.value)}
-            />
+            <label>Ingredients:</label>
+            {ingredientsArray.map((ingredient, index) => (
+              <div className="ingredients-group" key={index}>
+                <input
+                  type="text"
+                  value={ingredient}
+                  onChange={(e) => handleIngredientChange(index, e.target.value)}
+                />
+                {index !== 0 && <button type="button" onClick={() => removeIngredient(index)}>Remove</button>}
+              </div>
+            ))}
+            <button type="button" onClick={addIngredient}>Add Ingredient</button>
           </div>
           <div>
             <label htmlFor="instructions">Instructions:</label>
@@ -101,7 +125,7 @@ function RecipeList() {
               name="instructions"
               id="instructions"
               value={instructions}
-              onChange={e => setInstructions(e.target.value)}
+              onChange={(e) => setInstructions(e.target.value)}
             ></textarea>
           </div>
           {error && <p className="error">{error}</p>}
@@ -112,7 +136,7 @@ function RecipeList() {
         <ul>
           {recipeList.map(recipe => (
             <li key={recipe.id}>
-              {recipe.recipe_name}
+              <h3>{recipe.recipe_name}</h3>
               <div className="list-buttons">
                 <button className="list-button" onClick={() => handleView(recipe.id)}>View</button>
                 <button className="list-button" onClick={() => handleDelete(recipe.id)}>Delete</button>
@@ -133,8 +157,8 @@ function RecipeDetails() {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        const data = await axios.get(`${baseUrl}/${id}`);
-        setRecipe(data.data);
+        const { data } = await axios.get(`${baseUrl}/${id}`);
+        setRecipe(data);
       } catch (err) {
         console.error(err.message);
       }
@@ -142,13 +166,18 @@ function RecipeDetails() {
     fetchRecipe();
   }, [id]);
 
-  if (!recipe) return <div>No recipe yet.</div>;
+  if (!recipe) return <div>Loading...</div>;
 
   return (
     <div className="App">
       <div className="recipe-details">
         <h2>{recipe.recipe_name}</h2>
-        <p><strong>Ingredients:</strong> {recipe.ingredients}</p>
+        <p><strong>Ingredients:</strong></p>
+        <ul>
+          {recipe.ingredients.map((ingredient, index) => (
+            <li key={index}>{ingredient}</li>
+          ))}
+        </ul>
         <p><strong>Instructions:</strong> {recipe.instructions}</p>
         <div className="recipe-buttons">
           <button onClick={() => navigate('/')}>Go Back</button>
@@ -163,7 +192,7 @@ function EditRecipe() {
   const { id } = useParams();
   const [recipe, setRecipe] = useState(null);
   const [recipeName, setRecipeName] = useState('');
-  const [ingredients, setIngredients] = useState('');
+  const [ingredientsArray, setIngredientsArray] = useState([]);
   const [instructions, setInstructions] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -174,7 +203,7 @@ function EditRecipe() {
         const data = await axios.get(`${baseUrl}/${id}`);
         setRecipe(data.data);
         setRecipeName(data.data.recipe_name);
-        setIngredients(data.data.ingredients);
+        setIngredientsArray(data.data.ingredients);
         setInstructions(data.data.instructions);
       } catch (err) {
         console.error(err.message);
@@ -185,7 +214,7 @@ function EditRecipe() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!recipeName || !ingredients || !instructions) {
+    if (!recipeName || ingredientsArray.length === 0 || !instructions) {
       setError('All fields are required.');
       return;
     }
@@ -193,7 +222,7 @@ function EditRecipe() {
     try {
       await axios.put(`${baseUrl}/${id}`, {
         recipe_name: recipeName,
-        ingredients: ingredients,
+        ingredients: ingredientsArray,
         instructions: instructions
       });
       navigate(`/recipe/${id}`);
@@ -204,6 +233,22 @@ function EditRecipe() {
 
   const handleCancel = () => {
     navigate(`/recipe/${id}`);
+  };
+
+  const handleIngredientChange = (index, value) => {
+    const newIngredients = [...ingredientsArray];
+    newIngredients[index] = value;
+    setIngredientsArray(newIngredients);
+  };
+
+  const addIngredient = () => {
+    setIngredientsArray([...ingredientsArray, '']);
+  };
+
+  const removeIngredient = (index) => {
+    const newIngredients = [...ingredientsArray];
+    newIngredients.splice(index, 1);
+    setIngredientsArray(newIngredients);
   };
 
   if (!recipe) return <div>Loading...</div>;
@@ -218,18 +263,22 @@ function EditRecipe() {
             name="recipeName"
             id="recipeName"
             value={recipeName}
-            onChange={e => setRecipeName(e.target.value)}
+            onChange={(e) => setRecipeName(e.target.value)}
           />
         </div>
         <div>
-          <label htmlFor="ingredients">Ingredients:</label>
-          <textarea
-            type="text"
-            name="ingredients"
-            id="ingredients"
-            value={ingredients}
-            onChange={e => setIngredients(e.target.value)}
-          />
+          <label>Ingredients:</label>
+          {ingredientsArray.map((ingredient, index) => (
+            <div className="ingredients-group" key={index}>
+              <input
+                type="text"
+                value={ingredient}
+                onChange={(e) => handleIngredientChange(index, e.target.value)}
+              />
+              <button type="button" onClick={() => removeIngredient(index)}>Remove</button>
+            </div>
+          ))}
+          <button type="button" onClick={addIngredient}>Add Ingredient</button>
         </div>
         <div>
           <label htmlFor="instructions">Instructions:</label>
@@ -237,7 +286,7 @@ function EditRecipe() {
             name="instructions"
             id="instructions"
             value={instructions}
-            onChange={e => setInstructions(e.target.value)}
+            onChange={(e) => setInstructions(e.target.value)}
           ></textarea>
         </div>
         {error && <p className="error">{error}</p>}
