@@ -1,0 +1,75 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - REACT_APP_BASE_URL=http://localhost:5000
+    container_name: frontend
+    image: recipe_frontend_image_nginx:1.0.0
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - recipe_network
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    image: recipe_backend_image_alpine:1.0.0
+    restart: always
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - DB_URL=postgresql://postgres:postgres@app_database:5432/recipes
+    ports:
+      - "5000:5000"
+    depends_on:
+      app_database:
+        condition: service_healthy
+    networks:
+      - recipe_network
+
+  app_database:
+    container_name: app_database
+    image: postgres:14-alpine3.19
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: recipes
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d recipes"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - recipe_network
+
+#For database connection testing
+#  pgadmin:
+#    container_name: pgadmin_container
+#    image: dpage/pgadmin4
+#    ports:
+#      - "5050:80"
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com
+#      PGADMIN_DEFAULT_PASSWORD: admin
+#    depends_on:
+#      - app_database
+#    networks:
+#      - recipe_network
+
+volumes:
+  postgres_data:
+
+networks:
+  recipe_network:
+    driver: bridge
