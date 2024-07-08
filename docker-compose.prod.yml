@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      target: production
+      args:
+        - REACT_APP_BASE_URL=http://localhost:5001
+    container_name: frontend_prod
+    image: jandlcrz/e-luto_application:recipe_frontend_image_prod
+    ports:
+      - "3001:80"
+    networks:
+      - prod_network
+
+  backend:
+    container_name: backend_prod
+    image: jandlcrz/e-luto_application:recipe_backend_image_prod
+    restart: always
+    environment:
+      - FLASK_ENV=production
+      - DB_URL=postgresql://postgres-prod:postgres-prod@app_database:5432/recipes
+    ports:
+      - "5001:5000"
+    networks:
+      - prod_network
+
+  app_database:
+    container_name: database_prod
+    environment:
+      - POSTGRES_USER=postgres-prod
+      - POSTGRES_PASSWORD=postgres-prod
+      - POSTGRES_DB=recipes
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres-prod -d recipes"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - prod_network
+
+volumes:
+  postgres_data_prod:
+
+networks:
+  prod_network:
+    driver: bridge

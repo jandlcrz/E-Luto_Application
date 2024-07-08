@@ -62,7 +62,6 @@ button[type="button"] {
   color: #fff;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-right: 0.5rem;
 }
 
 button[type="submit"]:hover,
@@ -165,7 +164,6 @@ form div.ingredients-group {
 form div.ingredients-group input[type="text"] {
   flex: 1;
   padding-right: 3rem;
-  margin-right: 1rem;
 }
 
 form div.ingredients-group button {
@@ -175,6 +173,7 @@ form div.ingredients-group button {
   border: none;
   padding: 0.5rem;
   border-radius: 4px;
+  margin-left: 1rem;
   cursor: pointer;
 }
 

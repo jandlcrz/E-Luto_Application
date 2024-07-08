@@ -94,7 +94,7 @@ function RecipeList() {
   return (
     <div className="App">
       <section>
-        <form onSubmit={handleSubmit} autocomplete="nope">
+        <form onSubmit={handleSubmit}>
           <div>
             <label htmlFor="recipeName">Recipe Name:</label>
             <input
@@ -255,7 +255,7 @@ function EditRecipe() {
 
   return (
     <div className="App">
-      <form onSubmit={handleSubmit} autocomplete="nope">
+      <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="recipeName">Recipe Name:</label>
           <input

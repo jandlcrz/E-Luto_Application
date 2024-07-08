@@ -1,3 +1,25 @@
+FROM node:20.15-alpine3.19 AS development
+
+ARG REACT_APP_BASE_URL=http://localhost:5000
+
+ENV REACT_APP_BASE_URL=${REACT_APP_BASE_URL}
+
+WORKDIR /app
+
+COPY package*.json .
+
+RUN npm install
+
+RUN npm install -g nodemon
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["nodemon", "--exec", "npm", "run", "start"]
+
+
+
 FROM node:20.15-alpine3.19 AS builder
 
 ARG REACT_APP_BASE_URL=http://localhost:5000
@@ -14,7 +36,7 @@ COPY . .
 
 RUN npm run build
 
-FROM nginx:alpine
+FROM nginx:alpine3.19 AS production
 
 COPY --from=builder /app/build /usr/share/nginx/html
 

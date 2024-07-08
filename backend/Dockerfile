@@ -3,6 +3,8 @@ FROM python:3.12-alpine
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
+WORKDIR /app
+
 RUN apk update && apk add --no-cache libpq gcc && rm -rf /var/cache/apk/*
 #RUN apk update && apk add --no-cache libpq gcc postgresql-dev
 

@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      target: development
+      args:
+        - REACT_APP_BASE_URL=http://localhost:5000
+    container_name: frontend_dev
+    image: jandlcrz/e-luto_application:recipe_frontend_image_dev
+    ports:
+      - "3000:3000"
+    networks:
+      - dev_network
+    volumes:
+      - ./frontend:/app
+
+  backend:
+    container_name: backend_dev
+    image: jandlcrz/e-luto_application:recipe_backend_image_dev
+    restart: always
+    environment:
+      - FLASK_ENV=development
+      - DB_URL=postgresql://postgres-dev:postgres-dev@app_database:5432/recipes
+    ports:
+      - "5000:5000"
+    networks:
+      - dev_network
+
+  app_database:
+    container_name: database_dev
+    environment:
+      - POSTGRES_USER=postgres-dev
+      - POSTGRES_PASSWORD=postgres-dev
+      - POSTGRES_DB=recipes
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres-dev -d recipes"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev_network
+
+#For database connection testing
+#  pgadmin:
+#    container_name: pgadmin_container
+#    image: dpage/pgadmin4
+#    ports:
+#      - "5050:80"
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com
+#      PGADMIN_DEFAULT_PASSWORD: admin
+#    depends_on:
+#      - app_database
+#    networks:
+#      - dev_network
+
+volumes:
+  postgres_data_dev:
+
+networks:
+  dev_network:
+    driver: bridge
