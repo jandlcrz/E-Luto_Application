@@ -17,9 +17,9 @@ services:
     container_name: backend_prod
     image: jandlcrz/e-luto_application:recipe_backend_image_prod
     restart: always
+    env_file: backend_prod.env
     environment:
       - FLASK_ENV=production
-      - DB_URL=postgresql://postgres-prod:postgres-prod@app_database:5432/recipes
     ports:
       - "5001:5000"
     networks:
